@@ -3,6 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Google Analytics (GA4) 방문 통계
+       광고 차단기가 아래 첫 번째 줄을 막아도, gtag 함수는 두 번째 블록에서 직접 만들어 두기 때문에
+       사이트는 그대로 작동해요 (기록만 안 될 뿐). -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-8WF0LNH1V7"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-8WF0LNH1V7');
+  </script>
   <title>전생에 나는 뭐였을까 — 역사 속 내 팔자 테스트</title>
   <meta name="description" content="역사 속 내 팔자 테스트">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔮</text></svg>">
@@ -116,6 +127,8 @@
   </div>
 
   <div class="toast" id="toast"></div>
+
+  <footer class="site-footer">방문 통계를 위해 익명 데이터를 수집합니다</footer>
 </div>
 
 <!-- 순서 중요: data.js 가 먼저! -->

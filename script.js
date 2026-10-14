@@ -94,12 +94,20 @@ if (document.getElementById("app")) {
   const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
+  // 구글 애널리틱스 이벤트 기록 (광고 차단 등으로 gtag 가 없거나 오류가 나도 사이트는 계속 작동)
+  function track(name, params) {
+    try {
+      if (typeof window.gtag === "function") window.gtag("event", name, params || {});
+    } catch (err) { /* 기록 실패는 무시 */ }
+  }
+
   let current = 0;
   let quiz = [];      // 이번 판에 뽑힌 12문제
   let answers = [];   // 고른 답 [{ axis, score }, ...]
   let busy = false;
   let lastKibitz = "";
   let shareText = "";
+  let resultChar = null;  // 이번 결과 캐릭터 (공유 이벤트 기록용)
   let typingTimer = null;
   let typingFull = "";
 
@@ -153,7 +161,10 @@ if (document.getElementById("app")) {
     });
   }
 
-  $("start-btn").addEventListener("click", startQuiz);
+  $("start-btn").addEventListener("click", () => {
+    track("test_start");
+    startQuiz();
+  });
 
   // ---------- 질문 화면 ----------
   function startQuiz() {
@@ -258,6 +269,8 @@ if (document.getElementById("app")) {
   function showResult() {
     const user = computeAxes(answers);
     const c = findCharacter(user);
+    resultChar = c;
+    track("test_complete", { character: c.id, era: c.era });
     const match = getCharacter(c.match.id);
     const enemy = getCharacter(c.enemy.id);
 
@@ -385,6 +398,7 @@ if (document.getElementById("app")) {
   // ---------- 공유 / 다시 하기 ----------
   $("share-btn").onclick = (e) => {
     e.stopPropagation();
+    track("share_click", { character: resultChar ? resultChar.id : "" });
     copyText(shareText).then(() => toast(TEXTS.copied))
       .catch(() => alert("복사가 안 됐어. 아래 내용을 직접 복사해 줘:\n\n" + shareText));
   };
@@ -419,6 +433,7 @@ if (document.getElementById("app")) {
 
   $("retry-btn").onclick = (e) => {
     e.stopPropagation();
+    track("retry_click");
     setupStart();
     showScreen("screen-start");
   };

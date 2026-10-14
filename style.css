@@ -379,6 +379,17 @@ body {
 }
 .toast.show { opacity: 1; }
 
+/* 하단 안내 문구 */
+.site-footer {
+  margin-top: 48px;
+  padding-top: 14px;
+  border-top: 2px dashed var(--light-gray);
+  text-align: center;
+  font-size: 15px;
+  font-weight: 400;
+  color: #666;
+}
+
 /* ---------- 넓은 화면 (태블릿·PC) ---------- */
 @media (min-width: 640px) {
   .title { font-size: 52px; }
