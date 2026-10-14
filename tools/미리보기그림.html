@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>미리보기 그림 (1200×630)</title>
+<!--
+  링크 미리보기용 그림(og-image.png)을 만드는 페이지예요.
+  첫 화면처럼 캐릭터 그림을 비뚤게 모아 두고 제목을 얹었어요.
+
+  ▶ 그림 다시 만들기: 같은 폴더의 "미리보기그림만들기.bat" 더블클릭
+    → 전생테스트 폴더에 og-image.png 가 새로 저장돼요.
+  ▶ 들어갈 캐릭터를 바꾸고 싶으면 아래 PICKS 의 아이디만 바꾸세요.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Jua&family=Nanum+Gothic:wght@700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+<style>
+  html, body { margin: 0; width: 1200px; height: 630px; overflow: hidden; }
+  .og {
+    width: 1200px; height: 630px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center;
+  }
+  .og .collage { height: 330px; width: 760px; max-width: none; margin: 0 auto 6px; }
+  .og .collage-item { width: 170px !important; height: 170px !important; border-width: 4px; box-shadow: 6px 6px 0 var(--ink); }
+  .og .collage-item.pos0 { left: 0;   top: 70px; }
+  .og .collage-item.pos1 { left: 145px; top: 0; }
+  .og .collage-item.pos2 { left: 290px; top: 120px; width: 190px !important; height: 190px !important; }
+  .og .collage-item.pos3 { left: 450px; top: 10px; }
+  .og .collage-item.pos4 { left: 590px; top: 130px; }
+  .og .title { font-size: 84px; margin-bottom: 14px; text-shadow: 4px 4px 0 var(--gold), 7px 7px 0 var(--ink); }
+  .og .subtitle { font-size: 36px; padding: 4px 22px; margin: 0; }
+</style>
+</head>
+<body>
+<div class="og">
+  <div class="collage" id="collage"></div>
+  <h1 class="title">전생에 나는 뭐였을까</h1>
+  <p class="subtitle">역사 속 내 팔자 테스트</p>
+</div>
+<script>
+  const PICKS = ["paleo_hunter", "rome_gladiator", "goguryeo_strategist", "edo_sushi_vendor", "joseon_exam_scholar"];
+  const box = document.getElementById("collage");
+  PICKS.forEach((id, i) => {
+    const p = document.createElement("div");
+    p.className = "portrait small collage-item pos" + i;
+    const img = document.createElement("img");
+    img.src = "../images/" + id + ".png";
+    p.appendChild(img);
+    box.appendChild(p);
+  });
+</script>
+</body>
+</html>
