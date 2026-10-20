@@ -75,10 +75,22 @@ const TEXTS = {
   chartTitle: "📊 내 성향 (팩트 폭력 주의)",
   tapToSkip: "(화면 누르면 빨리 감기)",
 
+  jobTitle: "💼 직업",
+  moneyTitle: "💰 재산",
+  dayTitle: "🕰️ 하루 일과",
+  dangerTitle: "☠️ 사망 플래그 위험도",
+
   shareButton: "친구한테 퍼뜨리기 (복사)",
   copied: "복사됨. 친구도 당해봐야지",
+  copyFailed: "복사가 안 됐어. 아래 내용을 직접 복사해 줘:",
   retryButton: "이 팔자 인정 못 해 (다시 하기)",
-  shareEnding: "너도 해봐. 나만 당할 순 없지"
+  shareMyResult: "나의 전생",
+  shareDanger: "사망 플래그",
+  shareMatch: "찰떡",
+  shareEnemy: "천적",
+  shareEnding: "너도 해봐. 나만 당할 순 없지",
+
+  footer: "방문 통계를 위해 익명 데이터를 수집합니다"
 };
 
 

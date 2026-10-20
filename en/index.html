@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- 영어판 페이지 (주소 끝 /en/). 그림·스타일·스크립트는 한 칸 위 폴더의 파일을 같이 써요 -->
+  <script>window.ASSET_BASE = "../";</script>
+
+  <!-- Google Analytics (GA4) 방문 통계 (한국어판과 같은 아이디)
+       광고 차단기가 아래 첫 번째 줄을 막아도, gtag 함수는 두 번째 블록에서 직접 만들어 두기 때문에
+       사이트는 그대로 작동해요 (기록만 안 될 뿐). -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-8WF0LNH1V7"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    // 주소 끝에 ?debug=1 을 붙여 열면 GA의 DebugView 에서 이벤트를 바로 확인할 수 있어요.
+    // language / site_language: 영어판 'en' (페이지 방문 기록에도 같이 남아요)
+    var gaConfig = { language: 'en', site_language: 'en' };
+    if (/[?&]debug=1\b/.test(location.search)) gaConfig.debug_mode = true;
+    gtag('config', 'G-8WF0LNH1V7', gaConfig);
+  </script>
+  <title>What Were You in a Past Life? — The History Fate Test</title>
+  <meta name="description" content="12 questions. One past life. Find out who you were in history — no refunds.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔮</text></svg>">
+
+  <!-- 링크 미리보기 (카톡·인스타·페이스북 등에 주소 붙였을 때 뜨는 제목·그림) -->
+  <!-- 영어판 미리보기. 사이트 주소(GitHub Pages)가 바뀌면 아래 주소들도 같이 바꿔 주세요.
+       미리보기 그림(en/og-image.png)을 다시 만들려면 tools/미리보기그림만들기.bat 참고 -->
+  <meta property="og:url" content="https://koreanracooncoon-spec.github.io/racooncoon/en/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="What Were You in a Past Life?">
+  <meta property="og:description" content="The History Fate Test — 12 questions, one past life, zero refunds.">
+  <meta property="og:image" content="https://koreanracooncoon-spec.github.io/racooncoon/en/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="What Were You in a Past Life?">
+  <meta name="twitter:description" content="The History Fate Test — 12 questions, one past life, zero refunds.">
+  <meta name="twitter:image" content="https://koreanracooncoon-spec.github.io/racooncoon/en/og-image.png">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:locale:alternate" content="ko_KR">
+
+  <!-- 언어판 주소 안내 (검색엔진용): 한국어판은 지금 주소, 영어판은 /en/ -->
+  <link rel="canonical" href="https://koreanracooncoon-spec.github.io/racooncoon/en/">
+  <link rel="alternate" hreflang="ko" href="https://koreanracooncoon-spec.github.io/racooncoon/">
+  <link rel="alternate" hreflang="en" href="https://koreanracooncoon-spec.github.io/racooncoon/en/">
+
+  <!-- 폰트: 제목 Luckiest Guy, 버튼 Fredoka, 본문 Nunito (+ 언어 버튼의 "한국어"용 Jua) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Jua&family=Luckiest+Guy&family=Fredoka:wght@600;700&family=Nunito:wght@700;800&display=swap" rel="stylesheet">
+  <!-- ?v=날짜 : 파일을 고치면 이 날짜도 바꿔 주세요. 방문자 브라우저가 예전 파일을 쓰지 않고 새로 받아요. -->
+  <link rel="stylesheet" href="../style.css?v=20261020">
+</head>
+<body>
+<div id="app">
+
+  <!-- 언어 바꾸기 (누르면 한국어판 주소로 이동) -->
+  <nav class="lang-switch" aria-label="Language">
+    <a class="lang-btn" href="../" hreflang="ko" lang="ko">한국어</a>
+    <span class="lang-btn active" aria-current="page" lang="en">English</span>
+  </nav>
+
+  <!-- ========== 1. 시작 화면 ========== -->
+  <section class="screen" id="screen-start">
+    <div class="collage" id="collage"></div>
+    <h1 class="title" id="title"></h1>
+    <p class="subtitle" id="subtitle"></p>
+    <p class="intro" id="intro"></p>
+    <div class="start-wrap">
+      <button class="btn btn-main" id="start-btn"></button>
+    </div>
+  </section>
+
+  <!-- ========== 2. 질문 화면 ========== -->
+  <section class="screen hidden" id="screen-quiz">
+    <div class="progress-row">
+      <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+      <span class="progress-count" id="progress-count"></span>
+    </div>
+    <p class="progress-comment" id="progress-comment"></p>
+    <p class="luck-notice hidden" id="luck-notice"></p>
+    <div class="card quiz-card" id="quiz-card">
+      <span class="question-num" id="question-num"></span>
+      <p class="question-text" id="question-text"></p>
+    </div>
+    <div class="options" id="options"></div>
+  </section>
+
+  <!-- ========== 3. 로딩 화면 ========== -->
+  <section class="screen hidden" id="screen-loading">
+    <div class="loading-icon">🔮</div>
+    <p class="loading-text" id="loading-text"></p>
+    <div class="progress-track big"><div class="progress-fill" id="loading-fill"></div></div>
+    <p class="loading-pct" id="loading-pct">0%</p>
+  </section>
+
+  <!-- ========== 4. 결과 화면 ========== -->
+  <section class="screen hidden" id="screen-result">
+    <p class="result-label" id="result-label"></p>
+    <div class="hero">
+      <div class="hero-portrait" id="result-portrait"></div>
+      <div class="bubble">
+        <p id="bubble-text"></p>
+        <p class="bubble-skip" id="bubble-skip"></p>
+      </div>
+    </div>
+    <div class="name-tag">
+      <span class="era-chip" id="result-era"></span>
+      <h2 id="result-name"></h2>
+      <p class="signature" id="result-signature"></p>
+    </div>
+
+    <div class="info-grid">
+      <div class="card info"><p class="info-title" id="info-job-title">💼 Job</p><p id="info-job"></p></div>
+      <div class="card info"><p class="info-title" id="info-money-title">💰 Net worth</p><p id="info-money"></p><p class="info-sub" id="info-money-now"></p></div>
+      <div class="card info"><p class="info-title" id="info-day-title">🕰️ Daily routine</p><p id="info-day"></p></div>
+      <div class="card info"><p class="info-title" id="info-danger-title">☠️ Death flag risk</p><p class="stars" id="info-danger"></p><p class="info-sub" id="info-danger-note"></p></div>
+    </div>
+
+    <div class="card history">
+      <p class="history-title" id="history-title"></p>
+      <p id="history-text"></p>
+    </div>
+
+    <div class="relations">
+      <div class="card relation match" id="match-box"></div>
+      <div class="card relation enemy" id="enemy-box"></div>
+    </div>
+
+    <div class="card chart-card">
+      <p class="chart-title" id="chart-title"></p>
+      <div id="chart"></div>
+    </div>
+
+    <div class="result-buttons">
+      <button class="btn btn-main" id="share-btn"></button>
+      <button class="btn btn-sub" id="retry-btn"></button>
+    </div>
+  </section>
+
+  <!-- 구석 훈수 캐릭터 -->
+  <div class="kibitz" id="kibitz" aria-live="polite">
+    <div class="kibitz-bubble" id="kibitz-text"></div>
+    <div class="kibitz-face">😏</div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <footer class="site-footer" id="footer">We collect anonymous data for visitor statistics</footer>
+</div>
+
+<!-- 순서 중요: data_en.js 가 먼저! (한국어판은 ../index.html) -->
+<script src="../data_en.js?v=20261020"></script>
+<script src="../script.js?v=20261020"></script>
+</body>
+</html>

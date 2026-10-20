@@ -1,9 +1,25 @@
 // =====================================================================
 //  script.js — 사이트가 움직이는 방식 (보통은 고칠 필요 없어요)
-//  내용(질문, 대사, 문구)은 전부 data.js 에 있어요.
+//  내용(질문, 대사, 문구)은 한국어판 data.js, 영어판 data_en.js 에 있어요.
+//  한국어판은 index.html, 영어판은 en/index.html (주소 끝 /en/)
 // =====================================================================
 
 const AXIS_KEYS = ["conscience", "action", "desire", "luck"];
+
+// 그림 등 파일 위치 기준 (en/index.html 은 한 칸 위 폴더를 봐야 해서 "../")
+const ASSET_BASE = window.ASSET_BASE || "";
+
+// 언어별 내용 묶음 (페이지에 불러온 데이터 파일만 들어가요)
+const LANG_DATA = {};
+if (typeof TEXTS !== "undefined") LANG_DATA.ko = { TEXTS, AXES, QUESTIONS, CHARACTERS, imageDir: ASSET_BASE + "images/" };
+if (typeof EN !== "undefined") LANG_DATA.en = { ...EN, imageDir: ASSET_BASE + "images/en/" };
+let lang, D;   // 지금 쓰는 언어와 그 내용
+function setLang(l) {
+  lang = LANG_DATA[l] ? l : Object.keys(LANG_DATA)[0];
+  D = LANG_DATA[lang];
+}
+// 페이지 언어는 <html lang="ko"> / <html lang="en"> 으로 정해져요
+setLang(document.documentElement.lang);
 
 // ---------------------------------------------------------------------
 //  점수 계산 (test.html 에서도 같은 함수를 써요)
@@ -41,7 +57,7 @@ const PER_AXIS = 3;
 function buildQuiz() {
   const pools = {};
   AXIS_KEYS.forEach((k) => {
-    pools[k] = shuffle(QUESTIONS.filter((q) => q.axis === k)).slice(0, PER_AXIS);
+    pools[k] = shuffle(D.QUESTIONS.filter((q) => q.axis === k)).slice(0, PER_AXIS);
   });
   const quiz = [];
   for (let round = 0; round < PER_AXIS; round++) {
@@ -57,10 +73,11 @@ function buildQuiz() {
 }
 
 // 축별 점수 → 가장 가까운 캐릭터
+// bias: 캐릭터별 쏠림 보정값 (거리에 더해짐. 영어판만 있고, 없으면 0)
 function findCharacter(user) {
   let best = null, bestDist = Infinity, bestExtreme = -1;
-  CHARACTERS.forEach((c) => {
-    let dist = 0, extreme = 0;
+  D.CHARACTERS.forEach((c) => {
+    let dist = c.bias || 0, extreme = 0;
     AXIS_KEYS.forEach((k) => {
       const d = user[k] - c.scores[k];
       dist += d * d;
@@ -77,11 +94,11 @@ function findCharacter(user) {
 }
 
 function getCharacter(id) {
-  return CHARACTERS.find((c) => c.id === id);
+  return D.CHARACTERS.find((c) => c.id === id);
 }
 
 // test.html 에서 쓸 수 있게 내보내기
-window.PastLife = { computeAxes, findCharacter, getCharacter, buildQuiz, AXIS_KEYS };
+window.PastLife = { computeAxes, findCharacter, getCharacter, buildQuiz, AXIS_KEYS, setLang, data: () => D };
 
 
 // ---------------------------------------------------------------------
@@ -95,9 +112,12 @@ if (document.getElementById("app")) {
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
   // 구글 애널리틱스 이벤트 기록 (광고 차단 등으로 gtag 가 없거나 오류가 나도 사이트는 계속 작동)
+  // 모든 이벤트에 language(ko/en) 를 같이 보내요
   function track(name, params) {
     try {
-      if (typeof window.gtag === "function") window.gtag("event", name, params || {});
+      if (typeof window.gtag === "function") {
+        window.gtag("event", name, Object.assign({ language: lang, site_language: lang }, params));
+      }
     } catch (err) { /* 기록 실패는 무시 */ }
   }
 
@@ -116,7 +136,7 @@ if (document.getElementById("app")) {
     const box = document.createElement("div");
     box.className = "portrait" + (small ? " small" : "");
     const img = document.createElement("img");
-    img.src = "images/" + c.id + ".png";
+    img.src = D.imageDir + c.id + ".png";
     img.alt = c.name;
     img.onerror = () => {
       box.innerHTML = "";
@@ -128,7 +148,7 @@ if (document.getElementById("app")) {
       if (!small) {
         const t = document.createElement("span");
         t.className = "ph-text";
-        t.textContent = TEXTS.noImage;
+        t.textContent = D.TEXTS.noImage;
         box.appendChild(t);
       }
     };
@@ -142,18 +162,46 @@ if (document.getElementById("app")) {
     window.scrollTo(0, 0);
   }
 
+  // ---------- 언어 (한국어 / English) ----------
+  // 위쪽 버튼은 그냥 링크라서 누르면 다른 언어판 주소로 이동해요 (index.html, en/index.html 에 있음)
+  function applyTexts() {
+    $("info-job-title").textContent = D.TEXTS.jobTitle;
+    $("info-money-title").textContent = D.TEXTS.moneyTitle;
+    $("info-day-title").textContent = D.TEXTS.dayTitle;
+    $("info-danger-title").textContent = D.TEXTS.dangerTitle;
+    $("footer").textContent = D.TEXTS.footer;
+  }
+
+  document.querySelectorAll("a.lang-btn:not(.active), #en-hint a").forEach((a) => {
+    a.addEventListener("click", () => track("language_switch", { to: a.getAttribute("hreflang") }));
+  });
+
+  // 한국어판에 브라우저 언어가 한국어가 아닌 사람이 오면 "English version →" 안내만 띄우기 (자동 이동 X)
+  const hint = $("en-hint");
+  if (hint) {
+    const langs = (navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || ""])
+      .map((l) => String(l).toLowerCase());
+    let closed = false;
+    try { closed = sessionStorage.getItem("enHintClosed") === "1"; } catch (err) { /* 무시 */ }
+    if (!closed && !langs.some((l) => l.startsWith("ko"))) hint.classList.remove("hidden");
+    $("en-hint-close").addEventListener("click", () => {
+      hint.classList.add("hidden");
+      try { sessionStorage.setItem("enHintClosed", "1"); } catch (err) { /* 무시 */ }
+    });
+  }
+
   // ---------- 시작 화면 ----------
   function setupStart() {
-    document.title = TEXTS.title + " — " + TEXTS.subtitle;
-    $("title").textContent = TEXTS.title;
-    $("subtitle").textContent = TEXTS.subtitle;
-    $("intro").textContent = TEXTS.intro;
-    $("start-btn").textContent = TEXTS.startButton;
+    document.title = D.TEXTS.title + " — " + D.TEXTS.subtitle;
+    $("title").textContent = D.TEXTS.title;
+    $("subtitle").textContent = D.TEXTS.subtitle;
+    $("intro").textContent = D.TEXTS.intro;
+    $("start-btn").textContent = D.TEXTS.startButton;
 
     // 캐릭터 5명을 랜덤으로 골라 비뚤게 모아 두기
     const collage = $("collage");
     collage.innerHTML = "";
-    const shuffled = [...CHARACTERS].sort(() => Math.random() - 0.5).slice(0, 5);
+    const shuffled = [...D.CHARACTERS].sort(() => Math.random() - 0.5).slice(0, 5);
     shuffled.forEach((c, i) => {
       const p = makePortrait(c, true);
       p.classList.add("collage-item", "pos" + i);
@@ -190,11 +238,11 @@ if (document.getElementById("app")) {
     const q = quiz[current];
     const total = quiz.length;
     const notice = $("luck-notice");
-    if (q.axis === "luck") setRichText(notice, TEXTS.luckNotice);
+    if (q.axis === "luck") setRichText(notice, D.TEXTS.luckNotice);
     notice.classList.toggle("hidden", q.axis !== "luck");
     $("progress-fill").style.width = (current / total) * 100 + "%";
     $("progress-count").textContent = `${current + 1} / ${total}`;
-    $("progress-comment").textContent = TEXTS.progressComments[current] || "";
+    $("progress-comment").textContent = D.TEXTS.progressComments[current] || "";
     $("question-num").textContent = "Q" + (current + 1);
     $("question-text").textContent = q.q;
 
@@ -233,7 +281,7 @@ if (document.getElementById("app")) {
   let kibitzTimer = null;
   function showKibitz() {
     let line;
-    do { line = pick(TEXTS.kibitz); } while (line === lastKibitz && TEXTS.kibitz.length > 1);
+    do { line = pick(D.TEXTS.kibitz); } while (line === lastKibitz && D.TEXTS.kibitz.length > 1);
     lastKibitz = line;
     $("kibitz-text").textContent = line;
     const k = $("kibitz");
@@ -248,7 +296,7 @@ if (document.getElementById("app")) {
   async function startLoading() {
     $("kibitz").classList.remove("show");
     showScreen("screen-loading");
-    $("loading-text").textContent = pick(TEXTS.loading);
+    $("loading-text").textContent = pick(D.TEXTS.loading);
     const fill = $("loading-fill"), pct = $("loading-pct");
     for (let p = 0; p <= 99; p += 3) {
       fill.style.width = p + "%";
@@ -257,7 +305,7 @@ if (document.getElementById("app")) {
     }
     fill.style.width = "99%";
     pct.textContent = "99%";
-    $("loading-text").textContent = TEXTS.loadingStuck;
+    $("loading-text").textContent = D.TEXTS.loadingStuck;
     await wait(1400);
     fill.style.width = "100%";
     pct.textContent = "100%";
@@ -270,11 +318,17 @@ if (document.getElementById("app")) {
     const user = computeAxes(answers);
     const c = findCharacter(user);
     resultChar = c;
-    track("test_complete", { character: c.id, era: c.era });
+    track("test_complete", {
+      character: c.id, era: c.era,
+      conscience_score: +user.conscience.toFixed(2),
+      action_score: +user.action.toFixed(2),
+      desire_score: +user.desire.toFixed(2),
+      luck_score: +user.luck.toFixed(2)
+    });
     const match = getCharacter(c.match.id);
     const enemy = getCharacter(c.enemy.id);
 
-    $("result-label").textContent = TEXTS.resultLabel;
+    $("result-label").textContent = D.TEXTS.resultLabel;
     $("result-era").textContent = c.era;
     $("result-name").textContent = c.name;
     $("result-signature").textContent = "“" + c.signature + "”";
@@ -290,28 +344,31 @@ if (document.getElementById("app")) {
     $("info-danger").textContent = stars(c.danger);
     $("info-danger-note").textContent = c.dangerNote || "";
 
-    $("history-title").textContent = TEXTS.historyTitle;
+    $("history-title").textContent = D.TEXTS.historyTitle;
     $("history-text").textContent = c.history;
 
-    fillRelation("match", TEXTS.matchTitle, match, c.match.why);
-    fillRelation("enemy", TEXTS.enemyTitle, enemy, c.enemy.why);
+    fillRelation("match", D.TEXTS.matchTitle, match, c.match.why);
+    fillRelation("enemy", D.TEXTS.enemyTitle, enemy, c.enemy.why);
 
-    $("chart-title").textContent = TEXTS.chartTitle;
+    $("chart-title").textContent = D.TEXTS.chartTitle;
     drawChart(user);
 
-    $("share-btn").textContent = TEXTS.shareButton;
-    $("retry-btn").textContent = TEXTS.retryButton;
+    $("share-btn").textContent = D.TEXTS.shareButton;
+    $("retry-btn").textContent = D.TEXTS.retryButton;
 
     shareText =
-      `🔮 ${TEXTS.title} — ${TEXTS.subtitle}\n\n` +
-      `나의 전생: [${c.era}] ${c.name}\n` +
+      `🔮 ${D.TEXTS.title} — ${D.TEXTS.subtitle}\n\n` +
+      `${D.TEXTS.shareMyResult}: [${c.era}] ${c.name}\n` +
       `"${c.signature}"\n` +
-      `사망 플래그: ${stars(c.danger)}\n` +
-      `🤝 찰떡: ${match ? match.name : "-"}\n` +
-      `⚔️ 천적: ${enemy ? enemy.name : "-"}\n\n` +
-      TEXTS.shareEnding;
+      `${D.TEXTS.shareDanger}: ${stars(c.danger)}\n` +
+      `🤝 ${D.TEXTS.shareMatch}: ${match ? match.name : "-"}\n` +
+      `⚔️ ${D.TEXTS.shareEnemy}: ${enemy ? enemy.name : "-"}\n\n` +
+      D.TEXTS.shareEnding;
     // 인터넷에 올라간 사이트에서 하면 사이트 주소도 같이 복사 (내 컴퓨터에서 파일로 열면 생략)
-    if (location.protocol.startsWith("http")) shareText += "\n👉 " + location.origin + location.pathname;
+    // 한국어판은 지금 주소, 영어판은 /en/ 주소가 복사돼요
+    if (location.protocol.startsWith("http")) {
+      shareText += "\n👉 " + location.origin + location.pathname.replace(/index\.html$/, "");
+    }
 
     showScreen("screen-result");
     typeText(c.intro);
@@ -347,7 +404,7 @@ if (document.getElementById("app")) {
     chart.innerHTML = "";
     AXIS_KEYS.forEach((k, i) => {
       const v = user[k];
-      const ax = AXES[k];
+      const ax = D.AXES[k];
       const row = document.createElement("div");
       row.className = "axis";
       row.innerHTML = `
@@ -376,7 +433,7 @@ if (document.getElementById("app")) {
     clearInterval(typingTimer);
     typingFull = text;
     const el = $("bubble-text");
-    $("bubble-skip").textContent = TEXTS.tapToSkip;
+    $("bubble-skip").textContent = D.TEXTS.tapToSkip;
     $("bubble-skip").classList.remove("hidden");
     if (reduceMotion) { finishTyping(); return; }
     el.textContent = "";
@@ -399,8 +456,8 @@ if (document.getElementById("app")) {
   $("share-btn").onclick = (e) => {
     e.stopPropagation();
     track("share_click", { character: resultChar ? resultChar.id : "" });
-    copyText(shareText).then(() => toast(TEXTS.copied))
-      .catch(() => alert("복사가 안 됐어. 아래 내용을 직접 복사해 줘:\n\n" + shareText));
+    copyText(shareText).then(() => toast(D.TEXTS.copied))
+      .catch(() => alert(D.TEXTS.copyFailed + "\n\n" + shareText));
   };
 
   function copyText(text) {
@@ -438,5 +495,6 @@ if (document.getElementById("app")) {
     showScreen("screen-start");
   };
 
+  applyTexts();
   setupStart();
 }

@@ -8,12 +8,13 @@
   첫 화면처럼 캐릭터 그림을 비뚤게 모아 두고 제목을 얹었어요.
 
   ▶ 그림 다시 만들기: 같은 폴더의 "미리보기그림만들기.bat" 더블클릭
-    → 전생테스트 폴더에 og-image.png 가 새로 저장돼요.
+    → 한국어판 og-image.png, 영어판 en/og-image.png 가 새로 저장돼요.
+  ▶ 주소 끝에 #en 을 붙이면 영어판 그림이 나와요.
   ▶ 들어갈 캐릭터를 바꾸고 싶으면 아래 PICKS 의 아이디만 바꾸세요.
 -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Jua&family=Nanum+Gothic:wght@700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Jua&family=Nanum+Gothic:wght@700&family=Luckiest+Guy&family=Fredoka:wght@600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../style.css">
 <style>
   html, body { margin: 0; width: 1200px; height: 630px; overflow: hidden; }
@@ -31,6 +32,7 @@
   .og .collage-item.pos4 { left: 590px; top: 130px; }
   .og .title { font-size: 84px; margin-bottom: 14px; text-shadow: 4px 4px 0 var(--gold), 7px 7px 0 var(--ink); }
   .og .subtitle { font-size: 36px; padding: 4px 22px; margin: 0; }
+  html[lang="en"] .og .title { font-size: 70px; }
 </style>
 </head>
 <body>
@@ -40,13 +42,21 @@
   <p class="subtitle">역사 속 내 팔자 테스트</p>
 </div>
 <script>
-  const PICKS = ["paleo_hunter", "rome_gladiator", "goguryeo_strategist", "edo_sushi_vendor", "joseon_exam_scholar"];
+  const EN = location.hash === "#en";
+  const PICKS = EN
+    ? ["viking_raider", "greece_philosopher", "twenties_flapper", "medieval_plague_doctor", "voyage_pirate"]
+    : ["paleo_hunter", "rome_gladiator", "goguryeo_strategist", "edo_sushi_vendor", "joseon_exam_scholar"];
+  if (EN) {
+    document.documentElement.lang = "en";
+    document.querySelector(".og .title").textContent = "What Were You in a Past Life?";
+    document.querySelector(".og .subtitle").textContent = "The History Fate Test";
+  }
   const box = document.getElementById("collage");
   PICKS.forEach((id, i) => {
     const p = document.createElement("div");
     p.className = "portrait small collage-item pos" + i;
     const img = document.createElement("img");
-    img.src = "../images/" + id + ".png";
+    img.src = (EN ? "../images/en/" : "../images/") + id + ".png";
     p.appendChild(img);
     box.appendChild(p);
   });
